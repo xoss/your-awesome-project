@@ -5,6 +5,7 @@
 - **KISS principle** - Keep it simple and maintainable  
 - **Security first** - Validate input, encrypt sensitive data
 - **Docker-first** - All development uses containers
+- Always update documentation to reflect the changes of the project
 
 ## Development Standards
 - **Mandatory Testing**: All code requires thorough test coverage
