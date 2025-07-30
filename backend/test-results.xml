@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="0.455">
-    <testsuite name="src/services/__tests__/auth.service.test.ts" timestamp="2025-07-30T12:07:42.616Z" hostname="codespaces-3b5665" tests="9" failures="0" errors="0" skipped="0" time="0.011183572">
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; register &gt; should register a new user successfully" time="0.003906003">
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="0.411">
+    <testsuite name="src/services/__tests__/auth.service.test.ts" timestamp="2025-07-30T15:08:38.531Z" hostname="codespaces-3b5665" tests="9" failures="0" errors="0" skipped="0" time="0.012318719">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; register &gt; should register a new user successfully" time="0.0037077">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; register &gt; should throw error if user already exists" time="0.001434327">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; register &gt; should throw error if user already exists" time="0.001900272">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should login successfully with valid credentials" time="0.00055394">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should login successfully with valid credentials" time="0.000821495">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should throw error for invalid credentials" time="0.000321873">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should throw error for invalid credentials" time="0.000486316">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should require 2FA when enabled" time="0.000435225">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should require 2FA when enabled" time="0.000665627">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; createSession &gt; should create a new session" time="0.000669634">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; createSession &gt; should create a new session" time="0.000936608">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; validateSession &gt; should validate a valid session" time="0.000302218">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; validateSession &gt; should validate a valid session" time="0.000274231">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; validateSession &gt; should return null for expired session" time="0.000346588">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; validateSession &gt; should return null for expired session" time="0.000369885">
         </testcase>
-        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; deleteSession &gt; should delete a session" time="0.001173098">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; deleteSession &gt; should delete a session" time="0.001178207">
         </testcase>
     </testsuite>
 </testsuites>

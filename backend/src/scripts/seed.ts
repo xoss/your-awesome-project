@@ -213,7 +213,7 @@ async function seed() {
     console.log('Email: mike.johnson@example.com | Password: password123!')
     console.log('\n🔑 Development tokens:')
     sessions.forEach((session, index) => {
-      console.log(`User ${users[index].email}: ${session.token}`)
+      console.log(`User ${users[index]?.email}: ${session.token}`)
     })
 
   } catch (error) {

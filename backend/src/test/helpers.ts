@@ -12,7 +12,7 @@ export async function createTestApp(): Promise<FastifyInstance> {
   await app.register(require('@fastify/sensible'))
   
   // Mock auth middleware for testing
-  app.addHook('preHandler', async (request: any, reply) => {
+  app.addHook('preHandler', async (request: any, _reply) => {
     const authorization = request.headers.authorization
     if (authorization && authorization.startsWith('Bearer ')) {
       const token = authorization.replace('Bearer ', '')

@@ -16,7 +16,7 @@ export class FileController {
         return reply.status(400).send({ error: 'No file uploaded' })
       }
 
-      const buffer = await data.file.toBuffer()
+      const buffer = Buffer.concat(await data.file.toArray())
       const avatarUrl = await fileService.uploadAvatar(request.user.id, buffer, data.mimetype)
       
       reply.status(200).send({

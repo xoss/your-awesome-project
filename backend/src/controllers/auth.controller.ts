@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { AuthService } from '../services/auth.service'
-import { loginSchema, registerSchema, enable2FASchema, verify2FASchema } from '../types/auth'
+import { loginSchema, registerSchema, enable2FASchema } from '../types/auth'
 
 const authService = new AuthService()
 

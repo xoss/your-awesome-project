@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import speakeasy from 'speakeasy'
 import QRCode from 'qrcode'
 import { prisma } from '../config/database'
-import { RegisterInput, LoginInput, JWTPayload } from '../types/auth'
+import { RegisterInput, LoginInput } from '../types/auth'
 
 export class AuthService {
   async register(data: RegisterInput) {

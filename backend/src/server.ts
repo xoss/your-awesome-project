@@ -64,7 +64,7 @@ async function buildServer() {
   await fastify.register(projectRoutes, { prefix: '/api/projects' })
   await fastify.register(fileRoutes, { prefix: '/api/files' })
 
-  fastify.setErrorHandler((error, request, reply) => {
+  fastify.setErrorHandler((error, _request, reply) => {
     fastify.log.error(error)
     
     if (error.validation) {
