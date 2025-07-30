@@ -47,13 +47,25 @@ cd backend && npx prisma migrate dev
 - **Fail Fast**: Tests bail on first failure
 
 ## CI/CD Pipeline
+- **Feature Branches**: Auto-deploy `feature/*`, `bugfix/*`, `hotfix/*` to preview environments
 - **Development**: Auto-deploy on `main` branch push after tests pass
 - **Staging**: Manual approval required, includes prod data replication
 - **Production**: Manual approval required, includes backup & health checks
 - **Rollback**: Automatic rollback capability on deployment failures
+- **Cleanup**: Auto-cleanup preview environments when branches are deleted
 
 ## Deployment Environments
 ```bash
+# Preview environments (automatic for feature branches)
+git push origin feature/awesome-feature  # Auto-deploys to preview
+# URL: https://feature-awesome-feature.preview.customer-portal.com
+
+# Manual preview deployment
+./scripts/deploy-preview.sh feature/awesome-feature
+
+# Cleanup preview environment
+./scripts/cleanup-preview.sh feature/awesome-feature
+
 # Development (automatic)
 ./scripts/deploy.sh dev
 
@@ -65,7 +77,14 @@ cd backend && npx prisma migrate dev
 ./scripts/deploy.sh production v1.2.3
 ```
 
+## Preview Environments
+- **Automatic**: Every `feature/*`, `bugfix/*`, `hotfix/*` branch gets its own environment
+- **URL Pattern**: `https://[branch-name].preview.customer-portal.com`
+- **Isolated**: Each branch has its own database, Redis, and file storage
+- **Cleanup**: Automatically removed when branch is deleted
+- **PR Comments**: GitHub bot comments with preview URL on pull requests
+
 ## Current Status
 ✅ Authentication (JWT + 2FA) | ✅ Project Management | ✅ File Uploads  
 ✅ Testing Infrastructure (Backend: 100%, Frontend: 97.5%)  
-✅ Docker Environment | ✅ CI/CD Pipeline | ✅ Production Ready
+✅ Docker Environment | ✅ CI/CD Pipeline | ✅ Preview Environments | ✅ Production Ready

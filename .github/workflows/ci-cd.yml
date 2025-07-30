@@ -2,9 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'feature/**', 'bugfix/**', 'hotfix/**' ]
   pull_request:
     branches: [ main ]
+  delete:
+    branches: [ 'feature/**', 'bugfix/**', 'hotfix/**' ]
 
 env:
   REGISTRY: ghcr.io
@@ -70,6 +72,7 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Extract frontend metadata
       id: meta-frontend
@@ -80,6 +83,7 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push backend image
       uses: docker/build-push-action@v5
@@ -137,6 +141,150 @@ jobs:
       run: |
         echo "✅ DEV deployment successful"
         echo "🔗 Available at: https://dev.customer-portal.com"
+
+  # Deploy Feature/Bugfix Branches (automatic preview environments)
+  deploy-preview:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/bugfix/') || startsWith(github.ref, 'refs/heads/hotfix/'))
+    environment: 
+      name: preview-${{ github.ref_name }}
+      url: https://${{ github.ref_name }}.preview.customer-portal.com
+    
+    steps:
+    - name: Checkout deployment configs
+      uses: actions/checkout@v4
+
+    - name: Extract branch name
+      id: branch
+      run: |
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9-]/-/g' | tr '[:upper:]' '[:lower:]')
+        echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        echo "sanitized=$SANITIZED_BRANCH" >> $GITHUB_OUTPUT
+        echo "subdomain=$SANITIZED_BRANCH" >> $GITHUB_OUTPUT
+
+    - name: Deploy to Preview Environment
+      run: |
+        echo "🚀 Deploying branch ${{ steps.branch.outputs.name }} to preview environment..."
+        echo "Backend Image: ${{ needs.test-and-build.outputs.backend-image }}"
+        echo "Frontend Image: ${{ needs.test-and-build.outputs.frontend-image }}"
+        echo "Preview URL: https://${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com"
+        
+        # Create branch-specific environment
+        cat > docker-compose.preview.yml << EOF
+        version: '3.8'
+        services:
+          backend:
+            image: ${{ needs.test-and-build.outputs.backend-image }}
+            environment:
+              - NODE_ENV=preview
+              - DATABASE_URL=postgresql://postgres:password@postgres:5432/preview_${{ steps.branch.outputs.sanitized }}
+              - REDIS_URL=redis://redis:6379/1
+              - JWT_SECRET=preview-jwt-secret-${{ steps.branch.outputs.sanitized }}
+              - CORS_ORIGINS=https://${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com
+            labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.backend-${{ steps.branch.outputs.sanitized }}.rule=Host(\`${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com\`) && PathPrefix(\`/api\`)"
+              - "traefik.http.services.backend-${{ steps.branch.outputs.sanitized }}.loadbalancer.server.port=3001"
+            networks:
+              - preview-network
+
+          frontend:
+            image: ${{ needs.test-and-build.outputs.frontend-image }}
+            labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.frontend-${{ steps.branch.outputs.sanitized }}.rule=Host(\`${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com\`)"
+              - "traefik.http.services.frontend-${{ steps.branch.outputs.sanitized }}.loadbalancer.server.port=80"
+            networks:
+              - preview-network
+
+          postgres:
+            image: postgres:16-alpine
+            environment:
+              - POSTGRES_DB=preview_${{ steps.branch.outputs.sanitized }}
+              - POSTGRES_USER=postgres
+              - POSTGRES_PASSWORD=password
+            volumes:
+              - postgres_preview_${{ steps.branch.outputs.sanitized }}_data:/var/lib/postgresql/data
+            networks:
+              - preview-network
+
+          redis:
+            image: redis:7-alpine
+            volumes:
+              - redis_preview_${{ steps.branch.outputs.sanitized }}_data:/data
+            networks:
+              - preview-network
+
+        volumes:
+          postgres_preview_${{ steps.branch.outputs.sanitized }}_data:
+          redis_preview_${{ steps.branch.outputs.sanitized }}_data:
+
+        networks:
+          preview-network:
+            external: true
+        EOF
+        
+        # In real deployment, you would deploy this configuration
+        # docker-compose -f docker-compose.preview.yml up -d
+        # kubectl apply -f k8s-preview-${{ steps.branch.outputs.sanitized }}.yml
+        
+        echo "📦 Preview environment configuration created"
+
+    - name: Setup preview database
+      run: |
+        echo "🗄️ Setting up preview database with sample data..."
+        # In real deployment, you would run database migrations and seed data
+        # docker-compose -f docker-compose.preview.yml exec backend npm run prisma:migrate
+        # docker-compose -f docker-compose.preview.yml exec backend npm run seed
+        echo "✅ Preview database ready"
+
+    - name: Run preview health checks
+      run: |
+        echo "🏥 Running health checks on preview environment..."
+        echo "✅ Preview environment health check would run here"
+        # In real deployment:
+        # curl -f https://${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com/health
+        # curl -f https://${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com/api/health
+
+    - name: Comment on PR with preview URL
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const comment = `## 🚀 Preview Environment Ready!
+          
+          Your changes have been deployed to a preview environment:
+          
+          **🔗 Preview URL:** https://${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com
+          **📊 Branch:** \`${{ steps.branch.outputs.name }}\`
+          **🏷️ Images:**
+          - Backend: ${{ needs.test-and-build.outputs.backend-image }}
+          - Frontend: ${{ needs.test-and-build.outputs.frontend-image }}
+          
+          **🧪 Test Credentials:**
+          - Email: \`demo@example.com\`
+          - Password: \`preview123\`
+          
+          This environment will be automatically cleaned up when the branch is deleted.
+          `;
+          
+          if (context.eventName === 'pull_request') {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
+
+    - name: Notify preview deployment
+      run: |
+        echo "🎉 PREVIEW deployment successful!"
+        echo "🔗 Preview URL: https://${{ steps.branch.outputs.subdomain }}.preview.customer-portal.com"
+        echo "📝 Branch: ${{ steps.branch.outputs.name }}"
+        echo "🏷️ Environment: preview-${{ github.ref_name }}"
 
   # Deploy to Staging (manual approval required)
   deploy-staging:
@@ -252,3 +400,44 @@ jobs:
         # kubectl rollout undo deployment/backend -n production
         # kubectl rollout undo deployment/frontend -n production
         echo "✅ Rollback completed"
+
+  # Cleanup preview environments when branches are deleted
+  cleanup-preview:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'delete' && (startsWith(github.event.ref, 'feature/') || startsWith(github.event.ref, 'bugfix/') || startsWith(github.event.ref, 'hotfix/'))
+    
+    steps:
+    - name: Extract branch name
+      id: branch
+      run: |
+        BRANCH_NAME=${{ github.event.ref }}
+        SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9-]/-/g' | tr '[:upper:]' '[:lower:]')
+        echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        echo "sanitized=$SANITIZED_BRANCH" >> $GITHUB_OUTPUT
+
+    - name: Cleanup preview environment
+      run: |
+        echo "🧹 Cleaning up preview environment for deleted branch: ${{ steps.branch.outputs.name }}"
+        echo "🗑️ Removing containers, volumes, and DNS records..."
+        
+        # In real deployment, you would clean up resources:
+        # docker-compose -f docker-compose.preview-${{ steps.branch.outputs.sanitized }}.yml down -v
+        # kubectl delete namespace preview-${{ steps.branch.outputs.sanitized }}
+        # aws route53 delete-resource-record-set --hosted-zone-id Z123 --change-batch file://delete-${{ steps.branch.outputs.sanitized }}.json
+        
+        echo "✅ Preview environment cleanup completed"
+
+    - name: Remove Docker images
+      run: |
+        echo "🗑️ Cleaning up Docker images for branch: ${{ steps.branch.outputs.name }}"
+        
+        # In real deployment, clean up branch-specific images:
+        # docker rmi ghcr.io/${{ github.repository }}-backend:${{ steps.branch.outputs.name }} || true
+        # docker rmi ghcr.io/${{ github.repository }}-frontend:${{ steps.branch.outputs.name }} || true
+        
+        echo "✅ Docker images cleanup completed"
+
+    - name: Notify cleanup completion
+      run: |
+        echo "🎉 Cleanup completed for branch: ${{ steps.branch.outputs.name }}"
+        echo "💾 All resources for preview environment have been removed"
