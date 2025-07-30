@@ -8,6 +8,14 @@ Guidance for Claude Code when working with this repository.
 - **Security first** - Validate input, encrypt sensitive data, update dependencies
 - **Multi-environment aware** - Consider dev, staging, production impacts
 
+## Task Management & Sub-Agents
+**Planning Phase**: Use Claude Opus 4 for strategic thinking, architecture decisions, and complex problem analysis
+**Implementation Phase**: Use Claude Sonnet for code execution, file operations, and tactical development
+**Multi-Agent Coordination**: Spawn multiple sub-agents for parallel tasks when beneficial
+**Task Outlining**: Always outline tasks clearly before execution, breaking complex work into manageable steps
+**Plan Verification**: Always propose a detailed plan and wait for user verification before proceeding with any tasks
+**Safe Operations**: Only perform safe GET requests - never make destructive internet calls (POST, PATCH, DELETE) without explicit user permission.
+
 ## Development Standards
 - Clean, readable code with meaningful names
 - Modular, reusable components
