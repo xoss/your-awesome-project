@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="0.455">
+    <testsuite name="src/services/__tests__/auth.service.test.ts" timestamp="2025-07-30T12:07:42.616Z" hostname="codespaces-3b5665" tests="9" failures="0" errors="0" skipped="0" time="0.011183572">
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; register &gt; should register a new user successfully" time="0.003906003">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; register &gt; should throw error if user already exists" time="0.001434327">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should login successfully with valid credentials" time="0.00055394">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should throw error for invalid credentials" time="0.000321873">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; login &gt; should require 2FA when enabled" time="0.000435225">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; createSession &gt; should create a new session" time="0.000669634">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; validateSession &gt; should validate a valid session" time="0.000302218">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; validateSession &gt; should return null for expired session" time="0.000346588">
+        </testcase>
+        <testcase classname="src/services/__tests__/auth.service.test.ts" name="AuthService &gt; deleteSession &gt; should delete a session" time="0.001173098">
+        </testcase>
+    </testsuite>
+</testsuites>
