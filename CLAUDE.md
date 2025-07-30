@@ -46,7 +46,26 @@ cd backend && npx prisma migrate dev
 - **Build Gates**: Tests required for all builds
 - **Fail Fast**: Tests bail on first failure
 
+## CI/CD Pipeline
+- **Development**: Auto-deploy on `main` branch push after tests pass
+- **Staging**: Manual approval required, includes prod data replication
+- **Production**: Manual approval required, includes backup & health checks
+- **Rollback**: Automatic rollback capability on deployment failures
+
+## Deployment Environments
+```bash
+# Development (automatic)
+./scripts/deploy.sh dev
+
+# Staging (with prod data replication)  
+./scripts/deploy.sh staging v1.2.3
+./scripts/replicate-data.sh
+
+# Production (manual approval)
+./scripts/deploy.sh production v1.2.3
+```
+
 ## Current Status
 ✅ Authentication (JWT + 2FA) | ✅ Project Management | ✅ File Uploads  
 ✅ Testing Infrastructure (Backend: 100%, Frontend: 97.5%)  
-✅ Docker Environment | ✅ Production Ready
+✅ Docker Environment | ✅ CI/CD Pipeline | ✅ Production Ready

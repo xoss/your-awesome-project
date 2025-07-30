@@ -1,0 +1,248 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Test and Build Phase
+  test-and-build:
+    runs-on: ubuntu-latest
+    outputs:
+      backend-image: ${{ steps.meta-backend.outputs.tags }}
+      frontend-image: ${{ steps.meta-frontend.outputs.tags }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: |
+          backend/package-lock.json
+          frontend/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd backend && npm ci
+        cd ../frontend && npm ci
+
+    - name: Run backend tests
+      run: cd backend && npm test -- --run --coverage
+      
+    - name: Run frontend tests  
+      run: cd frontend && npm test -- --run --coverage
+
+    - name: Upload backend coverage
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./backend/coverage
+        flags: backend
+
+    - name: Upload frontend coverage
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./frontend/coverage
+        flags: frontend
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract backend metadata
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+
+    - name: Extract frontend metadata
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+
+  # Deploy to Development (automatic on main branch)
+  deploy-dev:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: 
+      name: development
+      url: https://dev.customer-portal.com
+    
+    steps:
+    - name: Checkout deployment configs
+      uses: actions/checkout@v4
+
+    - name: Deploy to Development
+      run: |
+        echo "🚀 Deploying to DEV environment..."
+        # This would typically trigger your deployment system
+        # Examples: kubectl, docker-compose, terraform, etc.
+        
+        # Simulate deployment
+        echo "Backend Image: ${{ needs.test-and-build.outputs.backend-image }}"
+        echo "Frontend Image: ${{ needs.test-and-build.outputs.frontend-image }}"
+        
+        # Example deployment command (replace with your actual deployment)
+        # kubectl set image deployment/backend backend=${{ needs.test-and-build.outputs.backend-image }}
+        # kubectl set image deployment/frontend frontend=${{ needs.test-and-build.outputs.frontend-image }}
+
+    - name: Run smoke tests
+      run: |
+        echo "🧪 Running smoke tests on DEV..."
+        # Add smoke tests here
+        curl -f https://dev.customer-portal.com/health || exit 1
+
+    - name: Notify development deployment
+      run: |
+        echo "✅ DEV deployment successful"
+        echo "🔗 Available at: https://dev.customer-portal.com"
+
+  # Deploy to Staging (manual approval required)
+  deploy-staging:
+    needs: [test-and-build, deploy-dev]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: 
+      name: staging
+      url: https://staging.customer-portal.com
+    
+    steps:
+    - name: Checkout deployment configs
+      uses: actions/checkout@v4
+
+    - name: Replicate production data to staging
+      run: |
+        echo "📊 Replicating PROD data to STAGING..."
+        # This would run your data replication process
+        # Examples:
+        # - Database dump/restore with data anonymization
+        # - S3 sync with sensitive data filtering
+        # - API calls to copy non-sensitive data
+        
+        # Example commands (replace with your actual process):
+        # pg_dump $PROD_DB_URL | pg_restore $STAGING_DB_URL
+        # aws s3 sync s3://prod-bucket s3://staging-bucket --exclude="sensitive/*"
+
+    - name: Deploy to Staging
+      run: |
+        echo "🚀 Deploying to STAGING environment..."
+        echo "Backend Image: ${{ needs.test-and-build.outputs.backend-image }}"
+        echo "Frontend Image: ${{ needs.test-and-build.outputs.frontend-image }}"
+        
+        # Example deployment (replace with your actual commands):
+        # kubectl set image deployment/backend backend=${{ needs.test-and-build.outputs.backend-image }} -n staging
+        # kubectl set image deployment/frontend frontend=${{ needs.test-and-build.outputs.frontend-image }} -n staging
+
+    - name: Run integration tests
+      run: |
+        echo "🧪 Running integration tests on STAGING..."
+        # Add comprehensive integration tests here
+        curl -f https://staging.customer-portal.com/health || exit 1
+        curl -f https://staging.customer-portal.com/api/health || exit 1
+
+    - name: Notify staging deployment
+      run: |
+        echo "✅ STAGING deployment successful"
+        echo "🔗 Available at: https://staging.customer-portal.com"
+        echo "📊 Production data replicated successfully"
+
+  # Deploy to Production (manual approval required)
+  deploy-production:
+    needs: [test-and-build, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: 
+      name: production
+      url: https://customer-portal.com
+    
+    steps:
+    - name: Checkout deployment configs
+      uses: actions/checkout@v4
+
+    - name: Pre-deployment backup
+      run: |
+        echo "💾 Creating production backup..."
+        # Create database and file backups before deployment
+        # pg_dump $PROD_DB_URL > backup-$(date +%Y%m%d-%H%M%S).sql
+        # aws s3 sync s3://prod-bucket s3://backup-bucket/$(date +%Y%m%d-%H%M%S)/
+
+    - name: Deploy to Production
+      run: |
+        echo "🚀 Deploying to PRODUCTION environment..."
+        echo "Backend Image: ${{ needs.test-and-build.outputs.backend-image }}"
+        echo "Frontend Image: ${{ needs.test-and-build.outputs.frontend-image }}"
+        
+        # Blue-green or rolling deployment
+        # kubectl set image deployment/backend backend=${{ needs.test-and-build.outputs.backend-image }} -n production
+        # kubectl set image deployment/frontend frontend=${{ needs.test-and-build.outputs.frontend-image }} -n production
+        # kubectl rollout status deployment/backend -n production
+        # kubectl rollout status deployment/frontend -n production
+
+    - name: Run production health checks
+      run: |
+        echo "🏥 Running production health checks..."
+        curl -f https://customer-portal.com/health || exit 1
+        curl -f https://customer-portal.com/api/health || exit 1
+        
+        # Add more comprehensive health checks
+        # - Database connectivity
+        # - External service integrations
+        # - Performance benchmarks
+
+    - name: Notify production deployment
+      run: |
+        echo "🎉 PRODUCTION deployment successful!"
+        echo "🔗 Live at: https://customer-portal.com"
+        echo "📈 Monitoring dashboards updated"
+
+  # Rollback capability
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure() && (contains(github.event.head_commit.message, '[rollback]') || github.event_name == 'workflow_dispatch')
+    environment: production
+    
+    steps:
+    - name: Rollback production deployment
+      run: |
+        echo "⏪ Rolling back production deployment..."
+        # kubectl rollout undo deployment/backend -n production
+        # kubectl rollout undo deployment/frontend -n production
+        echo "✅ Rollback completed"
