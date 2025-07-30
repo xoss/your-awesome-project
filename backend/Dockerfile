@@ -27,10 +27,11 @@ CMD ["npm", "run", "dev"]
 
 # Build stage
 FROM base AS build
-RUN npm install --only=production && npm cache clean --force
+RUN npm install && npm cache clean --force
 COPY . .
 RUN npx prisma generate
 RUN npm run build
+RUN npm prune --production
 
 # Production stage
 FROM node:20-slim AS production
