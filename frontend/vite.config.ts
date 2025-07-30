@@ -34,6 +34,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      thresholds: {
+        global: {
+          branches: 85,
+          functions: 85,
+          lines: 85,
+          statements: 85
+        }
+      },
       exclude: [
         'node_modules/',
         'dist/',
@@ -43,6 +51,11 @@ export default defineConfig({
         '**/types/**',
         'src/main.tsx'
       ]
-    }
+    },
+    // Enforce test quality - fail on first test failure
+    bail: 1,
+    // Require tests to pass before allowing builds
+    reporter: ['verbose', 'junit'],
+    outputFile: 'test-results.xml'
   }
 })

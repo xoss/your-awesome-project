@@ -1,0 +1,24 @@
+{
+  "name": "customer-portal",
+  "version": "1.0.0",
+  "description": "Customer Portal Application",
+  "scripts": {
+    "prepare": "husky install",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test -- --run",
+    "test:frontend": "cd frontend && npm test -- --run",
+    "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
+    "test:coverage:backend": "cd backend && npm run test:coverage",
+    "test:coverage:frontend": "cd frontend && npm run test:coverage",
+    "dev": "docker-compose -f docker-compose.dev.yml up",
+    "build": "npm run test && npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "husky": "^9.0.11"
+  },
+  "keywords": ["customer-portal", "fullstack", "typescript"],
+  "author": "Customer Portal Team",
+  "license": "MIT"
+}

@@ -24,6 +24,14 @@ export default defineConfig(({ mode }) => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
+        thresholds: {
+          global: {
+            branches: 90,
+            functions: 90,
+            lines: 90,
+            statements: 90
+          }
+        },
         exclude: [
           'node_modules/',
           'dist/',
@@ -32,7 +40,12 @@ export default defineConfig(({ mode }) => {
           '**/*.config.*',
           '**/types/**'
         ]
-      }
+      },
+      // Enforce test quality - fail on first test failure
+      bail: 1,
+      // Require tests to pass before allowing builds
+      reporter: ['verbose', 'junit'],
+      outputFile: 'test-results.xml'
     },
     resolve: {
       alias: {

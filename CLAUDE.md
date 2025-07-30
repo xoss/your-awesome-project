@@ -22,15 +22,28 @@
 ## Commands
 ```bash
 # Development
-docker-compose -f docker-compose.dev.yml up
+npm run dev
 
-# Testing  
-cd backend && npm test
-cd frontend && npm test
+# Testing (enforced quality gates)
+npm test                    # Run all tests
+npm run test:coverage       # Coverage reports
+cd backend && npm test      # Backend only
+cd frontend && npm test     # Frontend only
+
+# Building (tests required to pass)
+npm run build              # Full build with test gates
+cd backend && npm run build  # Backend build
+cd frontend && npm run build # Frontend build
 
 # Database
 cd backend && npx prisma migrate dev
 ```
+
+## Test Enforcement
+- **Coverage Thresholds**: Backend ≥90%, Frontend ≥85%
+- **Pre-commit Hooks**: All tests must pass before commits
+- **Build Gates**: Tests required for all builds
+- **Fail Fast**: Tests bail on first failure
 
 ## Current Status
 ✅ Authentication (JWT + 2FA) | ✅ Project Management | ✅ File Uploads  
