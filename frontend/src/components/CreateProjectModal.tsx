@@ -106,6 +106,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                         </label>
                         <input
                           {...register('name')}
+                          id="name"
                           type="text"
                           className="input-field"
                           placeholder="Enter project name"
@@ -121,6 +122,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                         </label>
                         <textarea
                           {...register('description')}
+                          id="description"
                           rows={3}
                           className="input-field"
                           placeholder="Enter project description"

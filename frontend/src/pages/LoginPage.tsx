@@ -70,6 +70,7 @@ export default function LoginPage() {
               </label>
               <input
                 {...register('email')}
+                id="email"
                 type="email"
                 autoComplete="email"
                 className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
@@ -85,6 +86,7 @@ export default function LoginPage() {
               </label>
               <input
                 {...register('password')}
+                id="password"
                 type="password"
                 autoComplete="current-password"
                 className={`relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 ${
@@ -103,6 +105,7 @@ export default function LoginPage() {
                 </label>
                 <input
                   {...register('totpCode')}
+                  id="totpCode"
                   type="text"
                   autoComplete="one-time-code"
                   className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
