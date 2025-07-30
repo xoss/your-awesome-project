@@ -45,8 +45,8 @@ COPY --from=build /app/package*.json ./
 COPY --from=build /app/prisma ./prisma
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S backend -u 1001
+RUN groupadd --gid 1001 nodejs
+RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home backend
 USER backend
 
 EXPOSE 3001
