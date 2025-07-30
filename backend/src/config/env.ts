@@ -2,9 +2,9 @@ import { z } from 'zod'
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_URL: z.string(),
+  DATABASE_URL: z.string().default('postgresql://postgres:password@localhost:5432/customer_portal'),
   REDIS_URL: z.string().default('redis://localhost:6379'),
-  JWT_SECRET: z.string().min(32),
+  JWT_SECRET: z.string().min(32).default('this-is-a-fallback-jwt-secret-for-development-only-32-chars'),
   JWT_REFRESH_SECRET: z.string().min(32).optional(),
   MINIO_ENDPOINT: z.string().default('localhost:9000'),
   MINIO_ACCESS_KEY: z.string().default('minioadmin'),
