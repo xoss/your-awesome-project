@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: awesome-project-dev
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+      - "9229:9229" # Node.js debug port
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT:-3000}
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    networks:
+      - app-network
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  # Development database
+  db:
+    image: postgres:15-alpine
+    container_name: awesome-project-dev-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-awesome_project_dev}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Development Redis
+  redis:
+    image: redis:7-alpine
+    container_name: awesome-project-dev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:

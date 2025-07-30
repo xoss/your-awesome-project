@@ -7,14 +7,15 @@ Guidance for Claude Code when working with this repository.
 - **KISS principle** - Keep it simple and maintainable
 - **Security first** - Validate input, encrypt sensitive data, update dependencies
 - **Multi-environment aware** - Consider dev, staging, production impacts
+- **Docker-first approach** - All development, testing, and deployment should use Docker containers for consistency and portability
 
 ## Task Management & Sub-Agents
-**Planning Phase**: Use Claude Opus 4 for strategic thinking, architecture decisions, and complex problem analysis
-**Implementation Phase**: Use Claude Sonnet for code execution, file operations, and tactical development
-**Multi-Agent Coordination**: Spawn multiple sub-agents for parallel tasks when beneficial
-**Task Outlining**: Always outline tasks clearly before execution, breaking complex work into manageable steps
-**Plan Verification**: Always propose a detailed plan and wait for user verification before proceeding with any tasks
-**Safe Operations**: Only perform safe GET requests - never make destructive internet calls (POST, PATCH, DELETE) without explicit user permission.
+- **Planning Phase**: Use Claude Opus 4 for strategic thinking, architecture decisions, and complex problem analysis
+- **Implementation Phase**: Use Claude Sonnet for code execution, file operations, and tactical development
+- **Multi-Agent Coordination**: Spawn multiple sub-agents for parallel tasks when beneficial
+- **Task Outlining**: Always outline tasks clearly before execution, breaking complex work into manageable steps
+- **Plan Verification**: Always propose a detailed plan and wait for user verification before proceeding with any tasks
+- **Safe Operations**: Only perform safe GET requests - never make destructive internet calls (POST, PATCH, DELETE) without explicit user permission.
 
 ## Development Standards
 - Clean, readable code with meaningful names
@@ -22,6 +23,9 @@ Guidance for Claude Code when working with this repository.
 - Comprehensive testing with linting
 - Clear documentation and commit messages
 - Git workflow with PRs and semantic versioning
+- Containerized development workflow using Docker Compose
+- Multi-stage Docker builds for optimized production images
+- Environment-specific configurations (.env files)
 
 ## Approach
 - Always ULTRATHINK before making changes
@@ -38,5 +42,12 @@ This file will be updated to reflect:
 - Performance and monitoring solutions
 - Security practices specific to the domain
 
+## Docker Environment
+- **Development**: Use `docker-compose -f docker-compose.dev.yml up` for local development with hot-reload
+- **Production**: Use `docker-compose up` for production-ready containers
+- **Health Checks**: All services include health monitoring and graceful failure handling
+- **Networking**: Services communicate through isolated Docker networks
+- **Data Persistence**: Database and cache data persisted through Docker volumes
+
 ## Current Status
-Early-stage project - decisions on architecture, tooling, and practices are still being made.
+Early-stage project with Docker containerization established - decisions on architecture, tooling, and practices are still being made.
