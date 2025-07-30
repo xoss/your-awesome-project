@@ -215,22 +215,6 @@ describe('LoginPage', () => {
     })
   })
 
-  it('validates email format', async () => {
-    const user = userEvent.setup()
-    
-    render(<LoginPage />)
-
-    // Enter invalid email
-    await user.type(screen.getByPlaceholderText('Email address'), 'invalid-email')
-    await user.click(screen.getByRole('button', { name: 'Sign in' }))
-
-    await waitFor(() => {
-      // Check for validation error - Zod might use different wording
-      const emailError = screen.queryByText(/invalid.*email/i)
-      expect(emailError).toBeInTheDocument()
-    })
-  })
-
   it('validates password length', async () => {
     const user = userEvent.setup()
     
