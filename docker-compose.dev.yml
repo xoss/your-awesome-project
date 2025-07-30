@@ -1,50 +1,95 @@
 version: '3.8'
 
 services:
-  app:
+  backend:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ./backend
+      dockerfile: Dockerfile
       target: development
-    container_name: awesome-project-dev
+    container_name: customer-portal-backend-dev
     ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+      - "3001:3001"
       - "9229:9229" # Node.js debug port
     environment:
       - NODE_ENV=development
-      - PORT=${PORT:-3000}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-customer_portal_dev}
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-key-for-development-32chars}
+      - TWILIO_SID=${TWILIO_SID}
+      - TWILIO_TOKEN=${TWILIO_TOKEN}
     volumes:
-      - .:/app:cached
+      - ./backend:/app:cached
       - /app/node_modules
+      - /app/dist
     networks:
       - app-network
-    command: npm run dev
+    depends_on:
+      - db
+      - redis
+      - minio
     stdin_open: true
     tty: true
 
-  # Development database
-  db:
-    image: postgres:15-alpine
-    container_name: awesome-project-dev-db
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: customer-portal-frontend-dev
+    ports:
+      - "3000:3000"
     environment:
-      POSTGRES_DB: ${DB_NAME:-awesome_project_dev}
+      - NODE_ENV=development
+      - VITE_API_URL=/api
+    volumes:
+      - ./frontend:/app:cached
+      - /app/node_modules
+      - /app/dist
+    networks:
+      - app-network
+    stdin_open: true
+    tty: true
+
+  db:
+    image: postgres:16-alpine
+    container_name: customer-portal-dev-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-customer_portal_dev}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - app-network
 
-  # Development Redis
   redis:
     image: redis:7-alpine
-    container_name: awesome-project-dev-redis
+    container_name: customer-portal-dev-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_dev_data:/data
+    networks:
+      - app-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: customer-portal-dev-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_dev_data:/data
     networks:
       - app-network
 
@@ -55,3 +100,4 @@ networks:
 volumes:
   postgres_dev_data:
   redis_dev_data:
+  minio_dev_data:
